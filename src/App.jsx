@@ -1,13 +1,13 @@
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import pkg from 'stardog'
 
 const { Connection, query } = pkg;
-const stardogURL = '***https://REPLACE_WITH_YOUR.stardog.cloud:5820';
-const stardogUser = '***REPLACE_WITH_YOURS';
-const stardogPassword = '***REPLACE_WITH_YOURS';
+const stardogURL = 'https://pwc.stardog.cloud:5820';
+const stardogUser = 'metaphactory';
+const stardogPassword = '53gn0%szh4lOT1$';
 
 async function getStardogData() {
     const conn = new Connection({
@@ -15,67 +15,52 @@ async function getStardogData() {
     password: stardogPassword,
     endpoint: stardogURL,
   });
-  let res;
-  res = await query
+  const res = await query
       .execute(
         conn,
-        '***DB_NAME',
-        `PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-         PREFIX owl:  <http://www.w3.org/2002/07/owl#>
-
-         SELECT ?g ?s ?p ?o
-         WHERE {
-          GRAPH ?g {
-            ?s ?p ?o .
-          }
-      }}
-      LIMIT 100
-`,
+        'TCCC_WriteOff_Final_20251119',
+        `select distinct ?s ?p ?o where { GRAPH <urn:Write_Off:oba_database> {?s ?p ?o }} LIMIT 10`,
         'application/sparql-results+json',
       {
         
         reasoning: false,
         offset: 0,
       }
-  ).then(({res}) => res.body.bindings);
-    return res;
+  ).then(({ body }) => body.results.bindings); 
+
+  return res;
 }
 
 
 
 function App() {
-  const [count, setCount] = useState(0)
-  
+  const [data, setData] = useState([])
+   
+   
   useEffect(() => {
-  // Fetch data from Stardog only on component mount
-  getStardogData().then(data => {
-    console.log(data);
-  });
-  }, []);
+    const fetchData = async () => {
+      const bindings = await getStardogData();
+      setData(bindings);
+    };
 
+    fetchData();
+  }, []);
+  let tableData = '';
+  if (data) {
+    tableData = data.map((item) => (
+      <tr key={item.s.value + item.p.value + item.o.value}>
+        <td>{item.s.value}</td>
+        <td>{item.p.value}</td>
+        <td>{item.o.value}</td>
+      </tr>
+    ));
+  }
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <table className="data-table">
+        <tbody>{tableData}</tbody>
+      </table>
+
     </>
   )
 }

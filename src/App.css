@@ -40,3 +40,13 @@
 .read-the-docs {
   color: #888;
 }
+
+.data-table {
+  margin: 1rem auto;
+  border-collapse: collapse;
+}
+
+.data-table td {
+  border: 1px solid #d0d0d0;
+  padding: 0.5rem 0.75rem;
+}
